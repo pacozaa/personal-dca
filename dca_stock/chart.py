@@ -6,6 +6,8 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
+from dca_stock.config import TARGET_DAYS
+
 # Output directory for saved charts
 _repo_root = Path(__file__).resolve().parents[1]
 DATA_DIR = _repo_root / "data"
