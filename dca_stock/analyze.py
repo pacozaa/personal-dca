@@ -86,7 +86,7 @@ def main() -> None:
         print(f"\n{'=' * 60}")
         print("  SUMMARY — Best Day to Buy Each Asset")
         print(f"{'=' * 60}")
-        for sym, day in overall_best.items():
+        for sym, day in sorted(overall_best.items(), key=lambda x: x[1]):
             print(f"  {sym:<10} → Day {day}")
         print()
 
