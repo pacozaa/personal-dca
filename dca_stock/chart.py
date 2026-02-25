@@ -6,8 +6,6 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from dca_stock.config import TARGET_DAYS
-
 # Output directory for saved charts
 _repo_root = Path(__file__).resolve().parents[1]
 DATA_DIR = _repo_root / "data"
@@ -33,7 +31,7 @@ def save_chart(symbol: str, results: dict[int, dict]) -> Path | None:
     # Colours: highlight the best day
     colors = ["#2ecc71" if d == best_day else "#3498db" for d in days]
 
-    fig, ax1 = plt.subplots(figsize=(8, 5))
+    fig, ax1 = plt.subplots(figsize=(max(10, len(days) * 0.5), 5))
 
     bars = ax1.bar(
         [str(d) for d in days],
@@ -44,6 +42,7 @@ def save_chart(symbol: str, results: dict[int, dict]) -> Path | None:
     )
 
     # Add value labels on each bar
+    label_fontsize = 7 if len(days) > 15 else 9
     for bar, price, sample in zip(bars, norm_prices, samples):
         ax1.text(
             bar.get_x() + bar.get_width() / 2,
@@ -51,8 +50,9 @@ def save_chart(symbol: str, results: dict[int, dict]) -> Path | None:
             f"{price:.4f}",
             ha="center",
             va="bottom",
-            fontsize=9,
+            fontsize=label_fontsize,
             fontweight="bold",
+            rotation=90 if len(days) > 15 else 0,
         )
         ax1.text(
             bar.get_x() + bar.get_width() / 2,
@@ -60,7 +60,7 @@ def save_chart(symbol: str, results: dict[int, dict]) -> Path | None:
             f"n={sample}",
             ha="center",
             va="center",
-            fontsize=8,
+            fontsize=max(5, label_fontsize - 2),
             color="white",
         )
 
@@ -97,11 +97,14 @@ def save_summary_chart(overall_best: dict[str, int], all_results: dict[str, dict
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     symbols = list(all_results.keys())
-    days = list(TARGET_DAYS)
+    # Only include days that have data for at least one symbol
+    days = sorted({d for res in all_results.values() for d in res})
 
-    fig, ax = plt.subplots(figsize=(max(8, len(symbols) * 2.5), 5))
+    n_days = len(days)
+    group_width = 0.8  # total width allocated per symbol group
+    bar_width = group_width / max(n_days, 1)
+    fig, ax = plt.subplots(figsize=(max(10, len(symbols) * 4), 6))
 
-    bar_width = 0.1
     x_positions = range(len(symbols))
 
     for i, day in enumerate(days):
@@ -127,7 +130,7 @@ def save_summary_chart(overall_best: dict[str, int], all_results: dict[str, dict
     ax.set_title("DCA Best Buy Day — All Stocks", fontsize=13, fontweight="bold")
     ax.set_xticks([x + bar_width * (len(days) - 1) / 2 for x in x_positions])
     ax.set_xticklabels(symbols, fontsize=10)
-    ax.legend(fontsize=8, ncol=len(days), loc="upper center", bbox_to_anchor=(0.5, -0.12))
+    ax.legend(fontsize=7, ncol=min(len(days), 10), loc="upper center", bbox_to_anchor=(0.5, -0.15))
 
     fig.tight_layout()
 

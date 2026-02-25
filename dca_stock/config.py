@@ -13,7 +13,7 @@ _repo_root = Path(__file__).resolve().parents[1]
 load_dotenv(_repo_root / ".env")
 
 ALPHA_VANTAGE_BASE_URL = "https://www.alphavantage.co/query"
-TARGET_DAYS = range(1, 8)  # Days 1 through 7
+TARGET_DAYS = range(1, 32)  # Days 1 through 31 (invalid days for short months are skipped)
 DEFAULT_CRYPTO_MARKET = "USD"  # Fiat currency for crypto price conversion
 
 

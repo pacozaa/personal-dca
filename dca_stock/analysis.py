@@ -3,18 +3,21 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from calendar import monthrange
 from datetime import date
 
 from dca_stock.config import TARGET_DAYS
 
 
 def find_best_day(time_series: dict[str, dict]) -> dict:
-    """Analyze daily prices to find the best day (1-7) of the month to buy.
+    """Analyze daily prices to find the best day (1-31) of the month to buy.
 
     For each month in the dataset, we find the first available trading day on or
-    after each target day (1-7). The "best" day is the one with the lowest
-    average closing price across all months (normalized as a percentage of
-    the month's average to account for price trends over time).
+    after each target day (1-31). If the target day exceeds the number of days
+    in a given month (e.g. day 30 in February), it is clamped to the last day
+    of that month so shorter months still contribute data. The "best" day is
+    the one with the lowest average closing price across all months (normalized
+    as a percentage of the month's average to account for price trends over time).
 
     Returns a dict with analysis results.
     """
@@ -54,11 +57,10 @@ def find_best_day(time_series: dict[str, dict]) -> dict:
             continue
 
         for target_day in TARGET_DAYS:
-            target_date = None
-            try:
-                target_date = date(year, month, target_day)
-            except ValueError:
-                continue  # Shouldn't happen for days 1-7
+            # Clamp target_day to the last day of this month
+            _, last_day = monthrange(year, month)
+            clamped_day = min(target_day, last_day)
+            target_date = date(year, month, clamped_day)
 
             # Find the first trading day on or after the target date
             matched_close = None

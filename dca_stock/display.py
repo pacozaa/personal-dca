@@ -17,7 +17,7 @@ def print_analysis(symbol: str, results: dict[int, dict]) -> None:
     best_day = min(results, key=lambda d: results[d]["avg_normalized_price"])
 
     print(f"\n{'=' * 60}")
-    print(f"  {symbol} — Best Day of Month to Buy (Days 1-7)")
+    print(f"  {symbol} — Best Day of Month to Buy (Days 1-31)")
     print(f"{'=' * 60}")
     print(f"  {'Day':<6} {'Norm. Price':<14} {'Avg Close ($)':<16} {'Months':<8}")
     print(f"  {'-' * 50}")

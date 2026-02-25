@@ -43,7 +43,7 @@ def main() -> None:
     all_symbols = stock_symbols + [f"{s} (crypto)" for s in crypto_symbols]
     print("DCA Best Buy Day Analysis")
     print(f"Analyzing: {', '.join(all_symbols)}")
-    print("Target days: 1st through 7th of each month")
+    print("Target days: 1st through last day of each month")
 
     overall_best: dict[str, int] = {}
     all_results: dict[str, dict[int, dict]] = {}
