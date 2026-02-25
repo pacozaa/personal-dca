@@ -11,6 +11,7 @@ import time
 
 from dca_stock.analysis import find_best_day
 from dca_stock.api import fetch_daily_prices
+from dca_stock.chart import save_chart, save_summary_chart
 from dca_stock.config import get_config
 from dca_stock.display import print_analysis
 
@@ -23,6 +24,7 @@ def main() -> None:
     print("Target days: 1st through 7th of each month")
 
     overall_best: dict[str, int] = {}
+    all_results: dict[str, dict[int, dict]] = {}
 
     for i, symbol in enumerate(symbols):
         if i > 0:
@@ -41,6 +43,12 @@ def main() -> None:
         if results:
             best_day = min(results, key=lambda d: results[d]["avg_normalized_price"])
             overall_best[symbol] = best_day
+            all_results[symbol] = results
+
+            # Save per-stock chart
+            chart_path = save_chart(symbol, results)
+            if chart_path:
+                print(f"  📊 Chart saved → {chart_path}")
 
     # Summary
     if overall_best:
@@ -50,6 +58,11 @@ def main() -> None:
         for sym, day in overall_best.items():
             print(f"  {sym:<10} → Day {day}")
         print()
+
+        # Save summary chart
+        summary_path = save_summary_chart(overall_best, all_results)
+        if summary_path:
+            print(f"  📊 Summary chart saved → {summary_path}")
 
 
 if __name__ == "__main__":

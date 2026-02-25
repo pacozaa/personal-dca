@@ -26,4 +26,34 @@ jobs:
         env:
           DCA_STOCKS: ${{ secrets.DCA_STOCKS }}
           ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
-        run: dca-stock-analyze
+        run: |
+          dca-stock-analyze | tee output.txt
+
+      - name: Upload charts as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dca-charts
+          path: data/*.png
+          if-no-files-found: ignore
+
+      - name: Write job summary
+        if: always()
+        run: |
+          echo '## 📊 DCA Stock Analysis Results' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          if ls data/*.png 1>/dev/null 2>&1; then
+            echo '## 📈 Charts' >> $GITHUB_STEP_SUMMARY
+            echo '' >> $GITHUB_STEP_SUMMARY
+            for img in data/*.png; do
+              name=$(basename "$img" .png)
+              base64_data=$(base64 -w 0 "$img" 2>/dev/null || base64 "$img")
+              echo "### ${name}" >> $GITHUB_STEP_SUMMARY
+              echo "<img src=\"data:image/png;base64,${base64_data}\" alt=\"${name}\" width=\"600\">" >> $GITHUB_STEP_SUMMARY
+              echo '' >> $GITHUB_STEP_SUMMARY
+            done
+          fi

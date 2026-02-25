@@ -29,6 +29,9 @@ Thumbs.db
 .coverage
 htmlcov/
 
+# Generated charts
+data/
+
 # Distribution
 *.tar.gz
 *.whl
