@@ -49,11 +49,12 @@ jobs:
           if ls data/*.png 1>/dev/null 2>&1; then
             echo '## 📈 Charts' >> $GITHUB_STEP_SUMMARY
             echo '' >> $GITHUB_STEP_SUMMARY
+            echo "Charts are available as downloadable artifacts:" >> $GITHUB_STEP_SUMMARY
+            echo '' >> $GITHUB_STEP_SUMMARY
             for img in data/*.png; do
               name=$(basename "$img" .png)
-              base64_data=$(base64 -w 0 "$img" 2>/dev/null || base64 "$img")
-              echo "### ${name}" >> $GITHUB_STEP_SUMMARY
-              echo "<img src=\"data:image/png;base64,${base64_data}\" alt=\"${name}\" width=\"600\">" >> $GITHUB_STEP_SUMMARY
-              echo '' >> $GITHUB_STEP_SUMMARY
+              echo "- ${name}.png" >> $GITHUB_STEP_SUMMARY
             done
+            echo '' >> $GITHUB_STEP_SUMMARY
+            echo "[📥 Download Charts Artifact]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" >> $GITHUB_STEP_SUMMARY
           fi
