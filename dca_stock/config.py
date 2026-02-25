@@ -14,19 +14,31 @@ load_dotenv(_repo_root / ".env")
 
 ALPHA_VANTAGE_BASE_URL = "https://www.alphavantage.co/query"
 TARGET_DAYS = range(1, 8)  # Days 1 through 7
+DEFAULT_CRYPTO_MARKET = "USD"  # Fiat currency for crypto price conversion
 
 
-def get_config() -> tuple[list[str], str]:
-    """Read stock symbols and API key from environment variables."""
+def get_config() -> tuple[list[str], list[str], str]:
+    """Read stock/crypto symbols and API key from environment variables.
+
+    Returns:
+        A tuple of (stock_symbols, crypto_symbols, api_key).
+    """
     raw_stocks = os.environ.get("DCA_STOCKS", "")
-    if not raw_stocks:
-        print("Error: DCA_STOCKS environment variable is not set.")
-        print("Usage: DCA_STOCKS='AAPL,MSFT' ALPHAVANTAGE_API_KEY='your_key' dca-stock-analyze")
+    raw_crypto = os.environ.get("DCA_CRYPTO", "")
+
+    if not raw_stocks and not raw_crypto:
+        print("Error: Neither DCA_STOCKS nor DCA_CRYPTO environment variable is set.")
+        print(
+            "Usage: DCA_STOCKS='AAPL,MSFT' DCA_CRYPTO='BTC,ETH' "
+            "ALPHAVANTAGE_API_KEY='your_key' dca-stock-analyze"
+        )
         sys.exit(1)
 
-    symbols = [s.strip().upper() for s in raw_stocks.split(",") if s.strip()]
-    if not symbols:
-        print("Error: DCA_STOCKS contains no valid symbols.")
+    stock_symbols = [s.strip().upper() for s in raw_stocks.split(",") if s.strip()]
+    crypto_symbols = [s.strip().upper() for s in raw_crypto.split(",") if s.strip()]
+
+    if not stock_symbols and not crypto_symbols:
+        print("Error: DCA_STOCKS and DCA_CRYPTO contain no valid symbols.")
         sys.exit(1)
 
     api_key = os.environ.get("ALPHAVANTAGE_API_KEY", "")
@@ -35,4 +47,4 @@ def get_config() -> tuple[list[str], str]:
         print("Get a free key at https://www.alphavantage.co/support/#api-key")
         sys.exit(1)
 
-    return symbols, api_key
+    return stock_symbols, crypto_symbols, api_key
