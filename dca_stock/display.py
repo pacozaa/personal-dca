@@ -28,8 +28,7 @@ def print_analysis(symbol: str, results: dict[int, dict]) -> None:
         r = results[day]
         marker = " ◀ BEST" if day == best_day else ""
         print(
-            f"  {day:<6} {r['avg_normalized_price']:<14.6f} "
-            f"{r['avg_raw_price']:<16.2f} {r['sample_count']:<8}{marker}"
+            f"  {day:<6} {r['avg_normalized_price']:<14.6f} {r['avg_raw_price']:<16.2f} {r['sample_count']:<8}{marker}"
         )
 
     print(f"\n  ➜ Best day to buy {symbol}: Day {best_day} of the month")
@@ -39,3 +38,31 @@ def print_analysis(symbol: str, results: dict[int, dict]) -> None:
     else:
         print(f"    (historically {abs(savings_pct):.3f}% above monthly average)")
     print()
+
+
+def print_analysis_markdown(symbol: str, results: dict[int, dict]) -> None:
+    """Print the analysis results for a single stock in Markdown format."""
+    if not results:
+        print(f"\n### {symbol}\n")
+        print(f"> ⚠️ {symbol}: Insufficient data for analysis\n")
+        return
+
+    best_day = min(results, key=lambda d: results[d]["avg_normalized_price"])
+
+    print(f"\n### 📈 {symbol} — Best Day of Month to Buy (Days 1–31)\n")
+    print("| Day | Norm. Price | Avg Close ($) | Months |")
+    print("|-----|-------------|---------------|--------|")
+
+    for day in TARGET_DAYS:
+        if day not in results:
+            continue
+        r = results[day]
+        marker = " ⭐" if day == best_day else ""
+        print(f"| {day}{marker} | {r['avg_normalized_price']:.6f} | {r['avg_raw_price']:.2f} | {r['sample_count']} |")
+
+    savings_pct = (1 - results[best_day]["avg_normalized_price"]) * 100
+    direction = "below" if savings_pct > 0 else "above"
+    print(
+        f"\n> 🏆 **Best day to buy {symbol}: Day {best_day}** of the month "
+        f"(historically {abs(savings_pct):.3f}% {direction} monthly average)\n"
+    )
