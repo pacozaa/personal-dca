@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+import pytest
+
 from dca_stock.analysis import find_best_day, find_best_month, find_best_weekday
 
 # ---------------------------------------------------------------------------
@@ -77,6 +79,24 @@ class TestFindBestDay:
         for day_data in results.values():
             assert 0.8 < day_data["avg_normalized_price"] < 1.2
 
+    def test_uniform_prices_normalized_to_one(self):
+        """When every trading day has the same close price, normalized price == 1.0."""
+        jan_days = _trading_days_for_month(2024, 1)
+        ts = _make_time_series([(d, 100.0) for d in jan_days])
+        results = find_best_day(ts)
+        for day_data in results.values():
+            assert day_data["avg_normalized_price"] == pytest.approx(1.0)
+
+    def test_lower_price_day_has_lower_normalized_price(self):
+        """A day with lower price should have lower normalized price than a day with higher price."""
+        jan_days = _trading_days_for_month(2024, 1)
+        prices = {d: 100.0 for d in jan_days}
+        prices[jan_days[0]] = 50.0   # Jan 2 → target day 1 resolves here (cheap)
+        prices[jan_days[9]] = 200.0  # Jan 15 → target day 15 resolves here (expensive)
+        ts = _make_time_series([(d, prices[d]) for d in jan_days])
+        results = find_best_day(ts)
+        assert results[1]["avg_normalized_price"] < results[15]["avg_normalized_price"]
+
     def test_insufficient_months_skipped(self):
         """Months with fewer than 5 trading days should be skipped."""
         # Create a series with only 2 trading days in a month
@@ -84,6 +104,23 @@ class TestFindBestDay:
         ts = _make_time_series(entries)
         results = find_best_day(ts)
         assert results == {}
+
+
+# ---------------------------------------------------------------------------
+# find_best_day — day clamping
+# ---------------------------------------------------------------------------
+
+
+class TestFindBestDayClamping:
+    """Verify that target days beyond the month length are clamped correctly."""
+
+    def test_day_30_and_31_clamped_to_last_feb_day(self):
+        """Days 30 and 31 in a 29-day month must clamp to day 29."""
+        feb_days = _trading_days_for_month(2024, 2)  # Feb 2024 is a leap year (29 days)
+        ts = _make_time_series([(d, 100.0) for d in feb_days])
+        results = find_best_day(ts)
+        assert results[30]["avg_raw_price"] == pytest.approx(results[29]["avg_raw_price"])
+        assert results[31]["avg_raw_price"] == pytest.approx(results[29]["avg_raw_price"])
 
 
 # ---------------------------------------------------------------------------
