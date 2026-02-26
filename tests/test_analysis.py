@@ -4,10 +4,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-import pytest
-
 from dca_stock.analysis import find_best_day, find_best_month, find_best_weekday
-
 
 # ---------------------------------------------------------------------------
 # Helpers
