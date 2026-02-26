@@ -50,7 +50,8 @@ def print_analysis_markdown(symbol: str, results: dict[int, dict]) -> None:
 
     best_day = min(results, key=lambda d: results[d]["avg_normalized_price"])
 
-    print(f"\n### 📈 {symbol} — Best Day of Month to Buy (Days 1–31)\n")
+    print(f"\n<details>")
+    print(f"<summary>📈 {symbol} — Best Day of Month to Buy (Days 1–31)</summary>\n")
     print("| Day | Norm. Price | Std Dev | Avg Close ($) | Months |")
     print("|-----|-------------|---------|---------------|--------|")
 
@@ -70,6 +71,7 @@ def print_analysis_markdown(symbol: str, results: dict[int, dict]) -> None:
         f"\n> 🏆 **Best day to buy {symbol}: Day {best_day}** of the month "
         f"(historically {abs(savings_pct):.3f}% {direction} monthly average)\n"
     )
+    print("</details>\n")
 
 
 def print_weekday_analysis(symbol: str, results: dict[int, dict]) -> None:
@@ -110,7 +112,8 @@ def print_weekday_analysis_markdown(symbol: str, results: dict[int, dict]) -> No
 
     best_wd = min(results, key=lambda d: results[d]["avg_normalized_price"])
 
-    print(f"\n### 📅 {symbol} — Best Weekday to Buy\n")
+    print(f"\n<details>")
+    print(f"<summary>📅 {symbol} — Best Weekday to Buy</summary>\n")
     print("| Weekday | Norm. Price | Std Dev | Avg Close ($) | Days |")
     print("|---------|-------------|---------|---------------|------|")
 
@@ -130,6 +133,7 @@ def print_weekday_analysis_markdown(symbol: str, results: dict[int, dict]) -> No
         f"\n> 🏆 **Best weekday to buy {symbol}: {WEEKDAY_NAMES[best_wd]}** "
         f"(historically {abs(savings_pct):.3f}% {direction} weekly average)\n"
     )
+    print("</details>\n")
 
 
 def print_month_analysis(symbol: str, results: dict[int, dict]) -> None:
@@ -170,7 +174,8 @@ def print_month_analysis_markdown(symbol: str, results: dict[int, dict]) -> None
 
     best_month = min(results, key=lambda m: results[m]["avg_normalized_price"])
 
-    print(f"\n### 📆 {symbol} — Best Month of Year to Buy (Seasonality)\n")
+    print(f"\n<details>")
+    print(f"<summary>📆 {symbol} — Best Month of Year to Buy (Seasonality)</summary>\n")
     print("| Month | Norm. Price | Std Dev | Avg Close ($) | Years |")
     print("|-------|-------------|---------|---------------|-------|")
 
@@ -190,3 +195,4 @@ def print_month_analysis_markdown(symbol: str, results: dict[int, dict]) -> None
         f"\n> 🏆 **Best month to buy {symbol}: {MONTH_NAMES[best_month]}** "
         f"(historically {abs(savings_pct):.3f}% {direction} yearly average)\n"
     )
+    print("</details>\n")
