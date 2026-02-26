@@ -16,6 +16,12 @@ ALPHA_VANTAGE_BASE_URL = "https://www.alphavantage.co/query"
 TARGET_DAYS = range(1, 32)  # Days 1 through 31 (invalid days for short months are skipped)
 DEFAULT_CRYPTO_MARKET = "USD"  # Fiat currency for crypto price conversion
 
+# Weekday labels (Monday = 0 … Friday = 4)
+WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
+# Month labels (January = 1 … December = 12)
+MONTH_NAMES = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
 
 def get_config() -> tuple[list[str], list[str], str]:
     """Read stock/crypto symbols and API key from environment variables.

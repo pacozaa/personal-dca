@@ -11,11 +11,18 @@ from __future__ import annotations
 import argparse
 import time
 
-from dca_stock.analysis import find_best_day
+from dca_stock.analysis import find_best_day, find_best_month, find_best_weekday
 from dca_stock.api import fetch_daily_crypto_prices, fetch_daily_prices
-from dca_stock.chart import save_chart, save_summary_chart
+from dca_stock.chart import save_chart, save_month_chart, save_summary_chart, save_weekday_chart
 from dca_stock.config import DEFAULT_CRYPTO_MARKET, get_config
-from dca_stock.display import print_analysis, print_analysis_markdown
+from dca_stock.display import (
+    print_analysis,
+    print_analysis_markdown,
+    print_month_analysis,
+    print_month_analysis_markdown,
+    print_weekday_analysis,
+    print_weekday_analysis_markdown,
+)
 
 
 def _process_symbol(
@@ -25,7 +32,8 @@ def _process_symbol(
     all_results: dict[str, dict[int, dict]],
     output_format: str = "text",
 ) -> None:
-    """Run analysis, display results, and save chart for a single symbol."""
+    """Run all analyses (day-of-month, weekday, seasonality), display results, and save charts."""
+    # --- Best day of month ---
     results = find_best_day(time_series)
     if output_format == "markdown":
         print_analysis_markdown(symbol, results)
@@ -40,6 +48,30 @@ def _process_symbol(
         chart_path = save_chart(symbol, results)
         if chart_path:
             print(f"  📊 Chart saved → {chart_path}")
+
+    # --- Best weekday ---
+    wd_results = find_best_weekday(time_series)
+    if output_format == "markdown":
+        print_weekday_analysis_markdown(symbol, wd_results)
+    else:
+        print_weekday_analysis(symbol, wd_results)
+
+    if wd_results:
+        wd_chart_path = save_weekday_chart(symbol, wd_results)
+        if wd_chart_path:
+            print(f"  📊 Weekday chart saved → {wd_chart_path}")
+
+    # --- Best month of year (seasonality) ---
+    month_results = find_best_month(time_series)
+    if output_format == "markdown":
+        print_month_analysis_markdown(symbol, month_results)
+    else:
+        print_month_analysis(symbol, month_results)
+
+    if month_results:
+        month_chart_path = save_month_chart(symbol, month_results)
+        if month_chart_path:
+            print(f"  📊 Seasonality chart saved → {month_chart_path}")
 
 
 def main() -> None:
@@ -124,3 +156,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from dca_stock.config import TARGET_DAYS
+from dca_stock.config import MONTH_NAMES, TARGET_DAYS, WEEKDAY_NAMES
 
 # Output directory for saved charts
 _repo_root = Path(__file__).resolve().parents[1]
@@ -25,7 +25,6 @@ def save_chart(symbol: str, results: dict[int, dict]) -> Path | None:
 
     days = [d for d in TARGET_DAYS if d in results]
     norm_prices = [results[d]["avg_normalized_price"] for d in days]
-    avg_raw = [results[d]["avg_raw_price"] for d in days]
     samples = [results[d]["sample_count"] for d in days]
 
     best_day = min(days, key=lambda d: results[d]["avg_normalized_price"])
@@ -88,6 +87,131 @@ def save_chart(symbol: str, results: dict[int, dict]) -> Path | None:
     return filepath
 
 
+def save_weekday_chart(symbol: str, results: dict[int, dict]) -> Path | None:
+    """Generate and save a bar chart showing normalized price by weekday (Mon–Fri).
+
+    Returns the path to the saved PNG file, or None if there is no data.
+    """
+    if not results:
+        return None
+
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    weekdays = [wd for wd in range(5) if wd in results]
+    norm_prices = [results[wd]["avg_normalized_price"] for wd in weekdays]
+    std_prices = [results[wd]["std_normalized_price"] for wd in weekdays]
+    samples = [results[wd]["sample_count"] for wd in weekdays]
+    labels = [WEEKDAY_NAMES[wd] for wd in weekdays]
+
+    best_wd = min(weekdays, key=lambda wd: results[wd]["avg_normalized_price"])
+    colors = ["#2ecc71" if wd == best_wd else "#3498db" for wd in weekdays]
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    bars = ax.bar(labels, norm_prices, color=colors, edgecolor="white", linewidth=0.8, yerr=std_prices, capsize=5)
+
+    for bar, price, sample in zip(bars, norm_prices, samples):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + max(std_prices) + 0.001,
+            f"{price:.4f}",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            fontweight="bold",
+        )
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() / 2,
+            f"n={sample}",
+            ha="center",
+            va="center",
+            fontsize=7,
+            color="white",
+        )
+
+    ax.axhline(y=1.0, color="#e74c3c", linestyle="--", linewidth=1, label="Weekly avg (1.0)")
+    ax.set_xlabel("Weekday", fontsize=11)
+    ax.set_ylabel("Avg Normalized Price", fontsize=11)
+    ax.set_title(f"{symbol} — Best Weekday to DCA Buy", fontsize=13, fontweight="bold")
+    ax.legend(loc="upper right", fontsize=9)
+
+    y_min = min(p - s for p, s in zip(norm_prices, std_prices)) - 0.002
+    y_max = max(p + s for p, s in zip(norm_prices, std_prices)) + 0.005
+    ax.set_ylim(y_min, y_max)
+
+    fig.tight_layout()
+
+    filepath = DATA_DIR / f"{symbol}_best_weekday.png"
+    fig.savefig(filepath, dpi=150)
+    plt.close(fig)
+
+    return filepath
+
+
+def save_month_chart(symbol: str, results: dict[int, dict]) -> Path | None:
+    """Generate and save a bar chart showing normalized price by calendar month (Jan–Dec).
+
+    Returns the path to the saved PNG file, or None if there is no data.
+    """
+    if not results:
+        return None
+
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    months = [m for m in range(1, 13) if m in results]
+    norm_prices = [results[m]["avg_normalized_price"] for m in months]
+    std_prices = [results[m]["std_normalized_price"] for m in months]
+    samples = [results[m]["sample_count"] for m in months]
+    labels = [MONTH_NAMES[m] for m in months]
+
+    best_month = min(months, key=lambda m: results[m]["avg_normalized_price"])
+    colors = ["#2ecc71" if m == best_month else "#3498db" for m in months]
+
+    fig, ax = plt.subplots(figsize=(12, 5))
+
+    bars = ax.bar(labels, norm_prices, color=colors, edgecolor="white", linewidth=0.8, yerr=std_prices, capsize=5)
+
+    for bar, price, sample in zip(bars, norm_prices, samples):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + max(std_prices) + 0.001,
+            f"{price:.4f}",
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            fontweight="bold",
+        )
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() / 2,
+            f"n={sample}",
+            ha="center",
+            va="center",
+            fontsize=7,
+            color="white",
+        )
+
+    ax.axhline(y=1.0, color="#e74c3c", linestyle="--", linewidth=1, label="Yearly avg (1.0)")
+    ax.set_xlabel("Month", fontsize=11)
+    ax.set_ylabel("Avg Normalized Price", fontsize=11)
+    ax.set_title(f"{symbol} — Best Month of Year to DCA Buy (Seasonality)", fontsize=13, fontweight="bold")
+    ax.legend(loc="upper right", fontsize=9)
+
+    if norm_prices:
+        y_min = min(p - s for p, s in zip(norm_prices, std_prices)) - 0.002
+        y_max = max(p + s for p, s in zip(norm_prices, std_prices)) + 0.005
+        ax.set_ylim(y_min, y_max)
+
+    fig.tight_layout()
+
+    filepath = DATA_DIR / f"{symbol}_best_month.png"
+    fig.savefig(filepath, dpi=150)
+    plt.close(fig)
+
+    return filepath
+
+
 def save_summary_chart(overall_best: dict[str, int], all_results: dict[str, dict[int, dict]]) -> Path | None:
     """Generate and save a grouped summary chart for all analysed stocks.
 
@@ -141,3 +265,4 @@ def save_summary_chart(overall_best: dict[str, int], all_results: dict[str, dict
     plt.close(fig)
 
     return filepath
+
