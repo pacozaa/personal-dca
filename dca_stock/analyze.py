@@ -153,6 +153,12 @@ def main() -> None:
         if summary_path:
             print(f"  📊 Summary chart saved → {summary_path}")
 
+    # --- API Request Usage ---
+    if output_format == "markdown":
+        print(f"\n> 📡 **API requests used this run:** {request_count}\n")
+    else:
+        print(f"\n📡 API requests used this run: {request_count}")
+
 
 if __name__ == "__main__":
     main()
